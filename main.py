@@ -14,7 +14,14 @@ def compute_mean_image(face_data):
 def save_face(output_name, img_data):
     plt.imsave(output_name, img_data, cmap='gray')
 
+def compute_eigenfaces(face_data, n=20):
+    mean_face = compute_mean_image(face_data)
+    faces_less_mean = face_data - mean_face
+    U, _, _ = np.linalg.svd(faces_less_mean.T)
+    return U[:, 0:n]
+
 face_data, labels = load_data()
-save_face('first_face.jpg', face_data[0].reshape(64, 64))
+eigenfaces = compute_eigenfaces(face_data, 400)
 mean_face = compute_mean_image(face_data)
-save_face('mean_face.jpg', mean_face.reshape(64, 64))
+faces_less_mean = face_data - mean_face
+weights = np.matmul(faces_less_mean, eigenfaces)
