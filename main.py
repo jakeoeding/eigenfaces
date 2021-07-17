@@ -1,7 +1,8 @@
 import numpy as np
 
 class FaceRecognizer:
-    def __init__(self):
+    def __init__(self, retention):
+        self.retention = retention
         self.face_data = None
         self.labels = None
         self.mean_face = None
@@ -21,12 +22,15 @@ class FaceRecognizer:
         self.labels = data_without_headers[: ,-1]
         self.face_data = np.delete(data_without_headers, -1, axis=1)
 
-    def find_eigenfaces(self, n=80):
+    def find_eigenfaces(self):
         self.faces_less_mean = self.face_data - self.mean_face
-        U, _, _ = np.linalg.svd(self.faces_less_mean.T)
-        self.eigenfaces = U[:, 0:n]
+        U, S, _ = np.linalg.svd(self.faces_less_mean.T)
+        total_energy = S.sum()
+        retention_candidates = np.where(S.cumsum() / total_energy > self.retention)
+        dimensions_to_retain = retention_candidates[0][0]
+        self.eigenfaces = U[:, 0:dimensions_to_retain]
 
 
 if __name__ == '__main__':
-    fr = FaceRecognizer()
+    fr = FaceRecognizer(0.9)
     fr.train()
