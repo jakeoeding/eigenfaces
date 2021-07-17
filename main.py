@@ -1,27 +1,32 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
-def load_data():
-    raw_data = np.genfromtxt('olivetti_faces.csv', delimiter=',')
-    data_without_headers = np.delete(raw_data, 0, axis=0)
-    labels = data_without_headers[: ,-1]
-    face_data = np.delete(data_without_headers, -1, axis=1)
-    return face_data, labels
+class FaceRecognizer:
+    def __init__(self):
+        self.face_data = None
+        self.labels = None
+        self.mean_face = None
+        self.faces_less_mean = None
+        self.eigenfaces = None
+        self.weights = None
 
-def compute_mean_image(face_data):
-    return np.average(face_data, axis=0)
+    def train(self):
+        self.load_data()
+        self.mean_face = np.average(self.face_data, axis=0)
+        self.find_eigenfaces()
+        self.weights = np.matmul(self.faces_less_mean, self.eigenfaces)
 
-def save_face(output_name, img_data):
-    plt.imsave(output_name, img_data, cmap='gray')
+    def load_data(self):
+        raw_data = np.genfromtxt('olivetti_faces.csv', delimiter=',')
+        data_without_headers = np.delete(raw_data, 0, axis=0)
+        self.labels = data_without_headers[: ,-1]
+        self.face_data = np.delete(data_without_headers, -1, axis=1)
 
-def compute_eigenfaces(face_data, n=20):
-    mean_face = compute_mean_image(face_data)
-    faces_less_mean = face_data - mean_face
-    U, _, _ = np.linalg.svd(faces_less_mean.T)
-    return U[:, 0:n]
+    def find_eigenfaces(self, n=80):
+        self.faces_less_mean = self.face_data - self.mean_face
+        U, _, _ = np.linalg.svd(self.faces_less_mean.T)
+        self.eigenfaces = U[:, 0:n]
 
-face_data, labels = load_data()
-eigenfaces = compute_eigenfaces(face_data, 400)
-mean_face = compute_mean_image(face_data)
-faces_less_mean = face_data - mean_face
-weights = np.matmul(faces_less_mean, eigenfaces)
+
+if __name__ == '__main__':
+    fr = FaceRecognizer()
+    fr.train()
