@@ -30,6 +30,17 @@ class FaceRecognizer:
         dimensions_to_retain = retention_candidates[0][0]
         self.eigenfaces = U[:, 0:dimensions_to_retain]
 
+    def reconstruct(self, weights):
+        return np.matmul(weights, self.eigenfaces.T) + self.mean_face
+
+    def find_best_match(self, face):
+        face_less_mean = face - self.mean_face
+        face_weights = np.matmul(face_less_mean, self.eigenfaces)
+        diffs = self.weights - face_weights
+        squared_diffs = diffs ** 2
+        match_index = np.argmin(squared_diffs.sum(axis=1))
+        return self.reconstruct(self.weights[match_index]), self.labels[match_index]
+
 
 if __name__ == '__main__':
     fr = FaceRecognizer(0.9)
