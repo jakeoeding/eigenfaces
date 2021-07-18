@@ -49,6 +49,6 @@ if __name__ == '__main__':
     fr = FaceRecognizer(0.9)
     fr.train()
 
-    search_vector = utils.image_to_vector('test_input.jpg')
+    search_vector = utils.image_to_vector('img/test_input.jpg')
     match, match_label = fr.find_best_match(search_vector)
-    plt.imsave('match.jpg', match.reshape(64, 64), cmap='gray')
+    plt.imsave('img/match.jpg', match.reshape(64, 64), cmap='gray')
