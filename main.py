@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 class FaceRecognizer:
@@ -43,5 +44,11 @@ class FaceRecognizer:
 
 
 if __name__ == '__main__':
+    import utils
+
     fr = FaceRecognizer(0.9)
     fr.train()
+
+    search_vector = utils.image_to_vector('test_input.jpg')
+    match, match_label = fr.find_best_match(search_vector)
+    plt.imsave('match.jpg', match.reshape(64, 64), cmap='gray')
