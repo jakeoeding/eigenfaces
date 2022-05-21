@@ -23,31 +23,29 @@ We then proceed to subtract this mean face from each face in our matrix. We can 
 
 
 ### A Little Aside
-If we let <img src="https://latex.codecogs.com/gif.latex?A" title="A" /> be this transposed matrix of original faces less the mean face, the SVD of <img src="https://latex.codecogs.com/gif.latex?A" title="A" /> is <img src="https://latex.codecogs.com/gif.latex?A=U\Sigma&space;V^T" title="A=U\Sigma V^T" />, where  <img src="https://latex.codecogs.com/gif.latex?U" title="U" /> and <img src="https://latex.codecogs.com/gif.latex?V" title="V" /> are orthogonal matrices.
+If we let $A$ be this transposed matrix of original faces less the mean face, the SVD of $A$ is $A=U\Sigma V^T$, where $U$ and $V$ are orthogonal matrices.
 
-The benefit of using the SVD is that it allows us to avoid computing the covariance matrix  <img src="https://latex.codecogs.com/gif.latex?AA^T" title="AA^T" />. This computation becomes intractable as the number of sample images and the pixel dimensions of each image increase.
+The benefit of using the SVD is that it allows us to avoid computing the covariance matrix $AA^T$. This computation becomes intractable as the number of sample images and the pixel dimensions of each image increase.
 
-The eigenfaces we are searching for are the eigenvectors of <img src="https://latex.codecogs.com/gif.latex?AA^T" title="AA^T" />. But since <img src="https://latex.codecogs.com/gif.latex?AA^T" title="AA^T" /> is real and symmetric, we know it has an eigendecomposition <img src="https://latex.codecogs.com/gif.latex?AA^T&space;=&space;Q\Lambda&space;Q^T" title="AA^T = Q\Lambda Q^T" />. Using the SVD of <img src="https://latex.codecogs.com/gif.latex?A" title="A" />, we can see that:
+The eigenfaces we are searching for are the eigenvectors of $AA^T$. But since $AA^T$ is real and symmetric, we know it has an eigendecomposition $AA^T = Q\Lambda Q^T$. Substituting the SVD of $A$, we can see that:
 
-<img src="https://latex.codecogs.com/gif.latex?\begin{align*}&space;AA^T&space;&=&space;U\Sigma&space;V^T&space;(U\Sigma&space;V^T)^T&space;\\&space;&=U\Sigma&space;V^T&space;V&space;\Sigma^T&space;U^T&space;\\&space;&=U&space;\Sigma^2&space;U^T&space;\end{align*}" title="\begin{align*} AA^T &= U\Sigma V^T (U\Sigma V^T)^T \\ &=U\Sigma V^T V \Sigma^T U^T \\ &=U \Sigma^2 U^T \end{align*}" />
+$$\begin{align*} AA^T &= U\Sigma V^T (U\Sigma V^T)^T \\\\ &=U\Sigma V^T V \Sigma^T U^T \\\\ &=U \Sigma^2 U^T \end{align*}$$
 
-&nbsp;
-
-Therefore, it follows that <img src="https://latex.codecogs.com/gif.latex?AA^T&space;=&space;Q\Lambda&space;Q^T&space;=&space;U\Sigma^2&space;U^T" title="AA^T = Q\Lambda Q^T = U\Sigma^2 U^T" />. Thus, the columns of <img src="https://latex.codecogs.com/gif.latex?U" title="U" /> constitute the eigenvectors of <img src="https://latex.codecogs.com/gif.latex?AA^T" title="AA^T" />. We ultimately just want some subset of the columns of <img src="https://latex.codecogs.com/gif.latex?U" title="U" /></a>, so the SVD will suffice and we can avoid the computation of <img src="https://latex.codecogs.com/gif.latex?AA^T" title="AA^T" /> entirely.
+Therefore, it follows that $AA^T = Q\Lambda Q^T = U\Sigma^2 U^T$. Thus, the columns of $U$ constitute the eigenvectors of $AA^T$. We ultimately just want some subset of the columns of $U$, so the SVD will suffice and we can avoid the computation of $AA^T$ entirely.
 
 ### Finding the Eigenfaces
-We determine the number of eigenfaces we want by using the `rentention` variable passed to the constructor of our `FaceRecognizer` class. We compute the total energy of the matrix <img src="https://latex.codecogs.com/gif.latex?A" title="A" />, which can be done by summing all the singular values (the diagonal of <img src="https://latex.codecogs.com/gif.latex?\Sigma" title="\Sigma" /> ). We then just take the first <img src="https://latex.codecogs.com/gif.latex?n" title="n" /> columns of <img src="https://latex.codecogs.com/gif.latex?U" title="U" /> such that the sum of the first <img src="https://latex.codecogs.com/gif.latex?n" title="n" /> corresponding singular values divided by the total energy is the smallest such ratio that is at least equal to `retention`.
+We determine the number of eigenfaces we want by using the `rentention` variable passed to the constructor of our `FaceRecognizer` class. We compute the total energy of the matrix $A$, which can be done by summing all the singular values (the diagonal of $\Sigma$). We then just take the first $n$ columns of $U$ such that the sum of the first $n$ corresponding singular values divided by the total energy is the smallest such ratio that is at least equal to `retention`.
 
 In our case, with a desired retention of 0.9, we end up with roughly 270 eigenfaces. Here a sample of what the first 40 look like when reshaped to be 64x64 images:
 
 ![Eigenfaces](img/eigenfaces.jpg)
 
 ### Calculating Weights
-We can determine the weight of the <img src="https://latex.codecogs.com/gif.latex?k" title="k" />th eigenface needed to represent an image by:
+We can determine the weight of the $k$ th eigenface needed to represent an image by:
 
-<img src="https://latex.codecogs.com/gif.latex?w_k&space;=&space;(x&space;-&space;m)E_k" title="w_k = (x - m)E_k" />
+$$w_k = (x - m)E_k$$
 
-where <img src="https://latex.codecogs.com/gif.latex?x" title="x" /> is the input image row vector, <img src="https://latex.codecogs.com/gif.latex?m" title="m" /> is the mean face vector, and <img src="https://latex.codecogs.com/gif.latex?E_k" title="E_k" /> is the <img src="https://latex.codecogs.com/gif.latex?k" title="k" />th eigenface (column vector). This simple dot product operation produces a scalar value weight. We repeat this operation for all <img src="https://latex.codecogs.com/gif.latex?n" title="n" /> eigenfaces to produce a weight vector with <img src="https://latex.codecogs.com/gif.latex?n" title="n" /> dimensions.
+where $x$ is the input image row vector, $m$ is the mean face vector, and $E_k$ is the $k$ th eigenface (column vector). This simple dot product operation produces a scalar value weight. We repeat this operation for all $n$ eigenfaces to produce a weight vector with $n$ dimensions.
 
 Internally, we have the model compute and store all the weights needed to represent each of the training images, which can be used for future comparisons.
 
